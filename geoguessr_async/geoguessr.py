@@ -53,7 +53,7 @@ class Geoguessr:
         """Get the NCFA token."""
         return self._ncfa
 
-    async def get_all_my_infos(self):
+    async def init(self):
         """
         Retrieves all the necessary information for the current user.
 
@@ -175,7 +175,7 @@ class Geoguessr:
         if roundNumber != 4:
             _ = await (await self.session).get(f"https://www.geoguessr.com/api/v3/games/{gameToken}?client=web")
 
-    async def get_challenge_score(self, challengeUrl: str, minRounds: Optional[int] = None):
+    async def get_challenge_score(self, challengeUrl: str, minRounds: Optional[int] = None) -> list[GeoguessrChallengeResult]:
         """Get scores on a standard challenge
 
         Args:
@@ -233,27 +233,7 @@ class Geoguessr:
         async with (await self.session).get(f"https://www.geoguessr.com/api/v3/challenges/{challengeToken}") as r:
             js = await r.json()
 
-        seconds = js["challenge"]["timeLimit"]
-
-        js["challenge"]["str_timeLimit"] = (
-            "No time limit"
-            if seconds == 0
-            else f"{(str(int(seconds / 60)) + ' min ') if int(seconds / 60) != 0 else ''}{(str(int(seconds % 60)) + ' sec') if int(seconds % 60) != 0 else ''}".strip()
-        )
-        move = not js["challenge"]["forbidMoving"]
-        pan = not js["challenge"]["forbidRotating"]
-        zoom = not js["challenge"]["forbidZooming"]
-
-        js["mode"] = "Unknown"
-
-        if move and pan and zoom:
-            js["mode"] = "Move"
-        elif not move and pan and zoom:
-            js["mode"] = "No Move"
-        elif not (move or pan or zoom):
-            js["mode"] = "NMPZ"
-
-        return GeoguessrChallenge(js)
+        return GeoguessrChallenge(js["challenge"])
 
     async def get_map_infos(self, mapUrl: str):
         """Get informations about a map

@@ -157,7 +157,6 @@ class GeoguessrCompetitionMedals(GeoguessrStr):
 
 class GeoguessrPin(GeoguessrStr):
     def __init__(self, datas: dict) -> None:
-        print(datas)
         self.url: Optional[str] = gu.str_or_none(datas.get("pin", {}).get("url"))
         self.anchor: Optional[str] = gu.str_or_none(datas.get("pin", {}).get("anchor"))
         self.isDefault: Optional[bool] = gu.bool_or_none(datas.get("pin", {}).get("isDefault"))
@@ -290,6 +289,11 @@ class GeoguessrChallenge(GeoguessrStr):
         self.streakType: Optional[str] = gu.str_or_none(datas.get("streakType"))
         self.accessLevel: Optional[int] = gu.int_or_none(datas.get("accessLevel"))
         self.locationOrder: int = gu.int_or_none(datas.get("locationOrder"))
+        self.timeLimitStr = (
+            "No time limit"
+            if self.timeLimit == 0
+            else f"{(str(int(self.timeLimit / 60)) + ' min ') if int(self.timeLimit / 60) != 0 else ''}{(str(int(self.timeLimit % 60)) + ' sec') if int(self.timeLimit % 60) != 0 else ''}".strip()
+        )
 
 
 class GeoguessrChallengeRound(GeoguessrStr):
@@ -464,25 +468,34 @@ class GeoguessrScorePlayerInfo(GeoguessrStr):
         self.flair: Optional[int] = gu.int_or_none(playerDatas.get("flair"))
         self.countryCode: Optional[str] = gu.str_or_none(playerDatas.get("countryCode"))
         self.pinUrl: Optional[str] = gu.str_or_none(playerDatas.get("pin", {}).get("url"))
-        self.xpBeforeChallenge: Optional[int] = gu.int_or_none(
-            progressionDatas.get("xpProgressions", [{}, {}])[0].get("xp")
-        )
-        self.xpAfterChallenge: Optional[int] = gu.int_or_none(
-            progressionDatas.get("xpProgressions", [{}, {}])[1].get("xp")
-        )
-        self.xpGained: Optional[int] = self.xpAfterChallenge - self.xpBeforeChallenge
-        self.levelBeforeChallenge: GeoguessrLevel = GeoguessrLevel(
-            progressionDatas.get("xpProgressions", [{}, {}])[0].get("currentLevel")
-        )
-        self.levelAfterChallenge: GeoguessrLevel = GeoguessrLevel(
-            progressionDatas.get("xpProgressions", [{}, {}])[1].get("currentLevel")
-        )
-        self.titleBeforeChallenge: GeoguessrXpTitle = GeoguessrXpTitle(
-            progressionDatas.get("xpProgressions", [{}, {}])[0].get("currentTitle")
-        )
-        self.titleAfterChallenge: GeoguessrXpTitle = GeoguessrXpTitle(
-            progressionDatas.get("xpProgressions", [{}, {}])[1].get("currentTitle")
-        )
+        if progressionDatas.get("xpProgressions"):
+            self.xpBeforeChallenge: Optional[int] = gu.int_or_none(
+                progressionDatas.get("xpProgressions", [{}, {}])[0].get("xp")
+            )
+            self.xpAfterChallenge: Optional[int] = gu.int_or_none(
+                progressionDatas.get("xpProgressions", [{}, {}])[1].get("xp")
+            )
+            self.xpGained: Optional[int] = self.xpAfterChallenge - self.xpBeforeChallenge
+            self.levelBeforeChallenge: GeoguessrLevel = GeoguessrLevel(
+                progressionDatas.get("xpProgressions", [{}, {}])[0].get("currentLevel")
+            )
+            self.levelAfterChallenge: GeoguessrLevel = GeoguessrLevel(
+                progressionDatas.get("xpProgressions", [{}, {}])[1].get("currentLevel")
+            )
+            self.titleBeforeChallenge: GeoguessrXpTitle = GeoguessrXpTitle(
+                progressionDatas.get("xpProgressions", [{}, {}])[0].get("currentTitle")
+            )
+            self.titleAfterChallenge: GeoguessrXpTitle = GeoguessrXpTitle(
+                progressionDatas.get("xpProgressions", [{}, {}])[1].get("currentTitle")
+            )
+        else:
+            self.xpBeforeChallenge: Optional[int] = None
+            self.xpAfterChallenge: Optional[int] = None
+            self.xpGained: Optional[int] = None
+            self.levelBeforeChallenge: GeoguessrLevel = GeoguessrLevel({})
+            self.levelAfterChallenge: GeoguessrLevel = GeoguessrLevel({})
+            self.titleBeforeChallenge: GeoguessrXpTitle = GeoguessrXpTitle({})
+            self.titleAfterChallenge: GeoguessrXpTitle = GeoguessrXpTitle({})
 
 
 class GeoguessrChallengePlayerTotalResult(GeoguessrStr):
